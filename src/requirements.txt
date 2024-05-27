@@ -1,0 +1,4 @@
+# requirements.txt
+
+bless==0.2.6
+sounddevice==0.4.6
