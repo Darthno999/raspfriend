@@ -61,6 +61,8 @@ class BLEHandler:
 
     def notification_state_change(self, characteristic: BlessGATTCharacteristic, enabled: bool):
         logger.debug(f"Notification state for {characteristic.uuid} changed to {'enabled' if enabled else 'disabled'}")
+        if characteristic.uuid == self.audio_data_char_uuid and enabled:
+            logger.debug("Audio data notifications enabled")
 
     async def update_audio_value(self, data):
         await self.server.update_value(self.audio_data_char_uuid, data)
