@@ -44,6 +44,7 @@ class BLEHandler:
 
         self.server.read_request_func = self.read_request
         self.server.write_request_func = self.write_request
+        self.server.notification_state_change_func = self.notification_state_change
 
     async def start_server(self):
         await self.setup_ble_services()
@@ -57,6 +58,9 @@ class BLEHandler:
     def write_request(self, characteristic: BlessGATTCharacteristic, value, **kwargs):
         characteristic.value = value
         logger.debug(f"Write request for {characteristic.uuid} with value {characteristic.value}")
+
+    def notification_state_change(self, characteristic: BlessGATTCharacteristic, enabled: bool):
+        logger.debug(f"Notification state for {characteristic.uuid} changed to {'enabled' if enabled else 'disabled'}")
 
     async def update_audio_value(self, data):
         await self.server.update_value(self.audio_data_char_uuid, data)
