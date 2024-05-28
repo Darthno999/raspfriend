@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 class MicHandler:
     def __init__(self, ble_handler):
         self.ble_handler = ble_handler
-        self.sample_rate = 8000  # Update to match Deepgram's requirement
-        self.channels = 1
+        self.sample_rate = 16000  # Fréquence d'échantillonnage correcte
+        self.channels = 2  # Utilisez 2 canaux
         self.packet_number = 0
         self.index = 0
         self.wav_file = wave.open('test.wav', 'wb')
@@ -23,15 +23,10 @@ class MicHandler:
             logger.warning(f"Audio input status: {status}")
         
         audio_data = bytearray()
-        for sample in indata[:, 0]:
-            # Convert to linear16 format (16-bit PCM)
+        for sample in indata[:, 0]:  # Utilisez le premier canal
             audio_data.extend(struct.pack('<h', int(sample * 32767)))  # Convert to 16-bit PCM
         
-        # Write the raw PCM data to the WAV file
-        self.wav_file.writeframes(audio_data)
-
-        # Ensure we send packets with 160 samples each
-        while len(audio_data) >= 320:  # 160 samples * 2 bytes per sample
+        while len(audio_data) >= 320:
             packet = struct.pack('<H', self.packet_number) + struct.pack('<B', self.index) + audio_data[:320]
             audio_data = audio_data[320:]
             self.packet_number += 1
@@ -41,17 +36,13 @@ class MicHandler:
                 self.ble_handler.update_audio_value(bytes(packet)),
                 self.ble_handler.loop
             )
-            # logger.debug(f"Streaming packet number {self.packet_number} with index {self.index}")
 
     async def start_streaming(self):
         logger.debug("Audio streaming started")
-        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback):
+        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=320):
             while True:
                 await asyncio.sleep(2)
                 logger.debug("Streaming audio data...")
-
-    async def stream_audio(self):
-        await self.start_streaming()
 
     def close(self):
         self.wav_file.close()
