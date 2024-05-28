@@ -82,7 +82,7 @@ class BLEHandler:
 
     async def update_audio_value(self, data):
         uuid_str = str(uuid.UUID(self.audio_data_char_uuid))  # Convertir l'UUID en chaîne de caractères
-        await self.server.update_value(uuid_str, data)
+        await self.server.update_value(uuid.UUID(uuid_str).bytes, data)
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
         logger.debug(f"Audio data packet sent: {data}")
 
