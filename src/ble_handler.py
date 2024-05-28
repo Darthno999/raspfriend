@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import uuid
 from bless import BlessServer, BlessGATTCharacteristic, GATTCharacteristicProperties, GATTAttributePermissions
 from config_handler import ConfigHandler
 from status_manager import StatusManager
@@ -79,7 +80,8 @@ class BLEHandler:
             logger.debug("Audio data notifications enabled")
             asyncio.create_task(self.update_audio_value(bytearray("Initial audio data", 'utf-8')))
 
-    async def update_audio_value(self, data):
-        await self.server.update_value(str(self.audio_data_char_uuid), data)
-        logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
-        logger.debug(f"Audio data packet sent: {data}")
+async def update_audio_value(self, data):
+    uuid_bytes = uuid.UUID(self.audio_data_char_uuid).bytes  # Convertir l'UUID en bytes
+    await self.server.update_value(uuid_bytes, data)
+    logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
+    logger.debug(f"Audio data packet sent: {data}")
