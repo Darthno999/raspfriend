@@ -53,6 +53,13 @@ async def main():
     audio_converter = AudioConverter(ble_handler, 'test.wav')
     audio_converter.convert_and_send()
 
+    # Boucle d'attente pour maintenir le serveur actif
+    try:
+        while True:
+            await asyncio.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Server stopped by user")
+
 if __name__ == "__main__":
     asyncio.run(main())
 
