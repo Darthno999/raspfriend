@@ -41,7 +41,7 @@ class MicHandler:
                 self.ble_handler.update_audio_value(bytes(packet)),
                 self.ble_handler.loop
             )
-            logger.debug(f"Streaming packet number {self.packet_number} with index {self.index}")
+            # logger.debug(f"Streaming packet number {self.packet_number} with index {self.index}")
 
     async def start_streaming(self):
         logger.debug("Audio streaming started")

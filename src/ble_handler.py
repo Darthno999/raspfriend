@@ -9,6 +9,8 @@ class BLEHandler:
         self.loop = loop
         self.server = BlessServer(name="Friend", loop=loop)
         self.audio_data_char_uuid = "19B10001-E8F2-537E-4F6C-D104768A1214"
+        self.server.advertising_interval = 100  # Intervalle de publicité en ms
+        self.server.advertising_timeout = 0  # 0 signifie publicité indéfinie
 
     async def setup_ble_services(self):
         battery_service_uuid = "0000180F-0000-1000-8000-00805F9B34FB"
@@ -23,6 +25,10 @@ class BLEHandler:
         battery_char_permissions = GATTAttributePermissions.readable
         await self.server.add_new_characteristic(
             battery_service_uuid, "00002A19-0000-1000-8000-00805F9B34FB", battery_char_flags, None, battery_char_permissions
+        )
+        # Ajoutez le descripteur CCC pour les notifications
+        await self.server.add_new_descriptor(
+            "00002A19-0000-1000-8000-00805F9B34FB", "00002902-0000-1000-8000-00805F9B34FB", GATTAttributePermissions.readable | GATTAttributePermissions.writeable
         )
 
         # Add Audio Service
@@ -51,11 +57,11 @@ class BLEHandler:
         await self.setup_ble_services()
         await self.server.start()
         logger.debug("BLE Server started and advertising")
+        logger.debug("Waiting for connections...")
 
     def read_request(self, characteristic: BlessGATTCharacteristic, **kwargs):
         if characteristic.uuid == "00002A19-0000-1000-8000-00805F9B34FB":
-            # Retourne un niveau de batterie de 100%
-            value = bytearray([100])
+            value = bytearray([100])  # Niveau de batterie à 100%
             logger.debug(f"Reading {characteristic.uuid}: {value}")
             return value
         logger.debug(f"Reading {characteristic.uuid}: {characteristic.value}")
@@ -69,8 +75,8 @@ class BLEHandler:
         logger.debug(f"Notification state for {characteristic.uuid} changed to {'enabled' if enabled else 'disabled'}")
         if characteristic.uuid == self.audio_data_char_uuid and enabled:
             logger.debug("Audio data notifications enabled")
+            # Add code to start sending audio data notifications here
 
     async def update_audio_value(self, data):
         await self.server.update_value(self.audio_data_char_uuid, data)
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
-
