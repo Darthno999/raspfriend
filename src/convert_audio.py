@@ -20,13 +20,17 @@ class AudioConverter:
         self.index = 0
 
     def convert_and_send(self):
+        logger.debug(f"Opening WAV file: {self.file_path}")
         with wave.open(self.file_path, 'rb') as wav_file:
             sample_rate = wav_file.getframerate()
             channels = wav_file.getnchannels()
             frames = wav_file.readframes(wav_file.getnframes())
+            logger.debug(f"Sample rate: {sample_rate}, Channels: {channels}, Total frames: {len(frames)}")
+            
             data = np.frombuffer(frames, dtype=np.int16).reshape(-1, channels)
             mono_data = np.mean(data, axis=1).astype(np.int16)
             audio_data = struct.pack('<' + 'h' * len(mono_data), *mono_data)
+            logger.debug(f"Converted to mono. Total samples: {len(mono_data)}")
 
             while len(audio_data) >= 320:
                 packet = struct.pack('<H', self.packet_number) + struct.pack('<B', self.index) + audio_data[:320]
@@ -34,10 +38,12 @@ class AudioConverter:
                 self.packet_number += 1
                 self.index = (self.index + 1) % 256
 
+                logger.debug(f"Sending packet number: {self.packet_number}, index: {self.index}")
                 asyncio.run_coroutine_threadsafe(
                     self.ble_handler.update_audio_value(bytes(packet)),
                     self.ble_handler.loop
                 )
+            logger.debug("Finished sending audio data")
 
 async def main():
     loop = asyncio.get_event_loop()
