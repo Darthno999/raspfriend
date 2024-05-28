@@ -20,12 +20,24 @@ class AudioConverter:
         self.index = 0
 
     def convert_and_send(self):
-        logger.debug(f"Opening WAV file: {self.file_path}")
+        logger.debug("Waiting for 20 seconds before sending audio...")
+        asyncio.run_coroutine_threadsafe(
+            self.ble_handler.update_audio_value(bytes("Waiting for 20 seconds before sending audio...")),
+            self.ble_handler.loop
+        ).result()  # Attendez que la coroutine se termine
+        
+        asyncio.run(asyncio.sleep(20))
+
+        logger.debug(f"Ouverture du fichier WAV : {self.file_path}")
         with wave.open(self.file_path, 'rb') as wav_file:
             sample_rate = wav_file.getframerate()
             channels = wav_file.getnchannels()
             frames = wav_file.readframes(wav_file.getnframes())
             logger.debug(f"Sample rate: {sample_rate}, Channels: {channels}, Total frames: {len(frames)}")
+            
+            if len(frames) == 0:
+                logger.error("No audio data found in the WAV file.")
+                return
             
             data = np.frombuffer(frames, dtype=np.int16).reshape(-1, channels)
             mono_data = np.mean(data, axis=1).astype(np.int16)

@@ -2,7 +2,6 @@ import sounddevice as sd
 import struct
 import asyncio
 import logging
-import wave
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -14,10 +13,6 @@ class MicHandler:
         self.channels = 2  # Utilisez 2 canaux pour l'enregistrement
         self.packet_number = 0
         self.index = 0
-        self.wav_file = wave.open('test.wav', 'wb')
-        self.wav_file.setnchannels(self.channels)
-        self.wav_file.setsampwidth(2)  # 16-bit samples
-        self.wav_file.setframerate(self.sample_rate)
 
     def audio_callback(self, indata, frames, time, status):
         if status:
@@ -48,5 +43,6 @@ class MicHandler:
                 logger.debug("Streaming audio data...")
 
     def close(self):
-        self.wav_file.close()
+        pass
+        
         
