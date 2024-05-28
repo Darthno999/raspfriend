@@ -24,11 +24,10 @@ class MicHandler:
             logger.warning(f"Audio input status: {status}")
         
         # Convertir en mono en prenant la moyenne des deux canaux
-        mono_data = np.mean(indata, axis=1)
+        mono_data = np.mean(indata, axis=1).astype(np.int16)
         
-        audio_data = bytearray()
-        for sample in mono_data:
-            audio_data.extend(struct.pack('<h', int(sample * 32767)))  # Convert to 16-bit PCM
+        # Convertir les données en format 16-bit PCM
+        audio_data = struct.pack('<' + 'h' * len(mono_data), *mono_data)
         
         while len(audio_data) >= 320:
             packet = struct.pack('<H', self.packet_number) + struct.pack('<B', self.index) + audio_data[:320]
@@ -43,7 +42,7 @@ class MicHandler:
 
     async def start_streaming(self):
         logger.debug("Audio streaming started")
-        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=1024, latency='low'):
+        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=256, latency='low'):
             while True:
                 await asyncio.sleep(2)
                 logger.debug("Streaming audio data...")
