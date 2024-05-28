@@ -1,21 +1,23 @@
 import asyncio
 import logging
 from bless import BlessServer, BlessGATTCharacteristic, GATTCharacteristicProperties, GATTAttributePermissions
+from config_handler import ConfigHandler
 
 logger = logging.getLogger(__name__)
 
 class BLEHandler:
     def __init__(self, loop):
         self.loop = loop
-        self.server = BlessServer(name="Friend", loop=loop)
-        self.audio_data_char_uuid = "19B10001-E8F2-537E-4F6C-D104768A1214"
+        self.config = ConfigHandler().get_config()
+        self.server = BlessServer(name=self.config['device_name'], loop=loop)
+        self.audio_data_char_uuid = self.config['audio_data_char_uuid']
         self.server.advertising_interval = 100  # Intervalle de publicité en ms
         self.server.advertising_timeout = 0  # 0 signifie publicité indéfinie
 
     async def setup_ble_services(self):
-        battery_service_uuid = "0000180F-0000-1000-8000-00805F9B34FB"
-        audio_service_uuid = "19B10000-E8F2-537E-4F6C-D104768A1214"
-        codec_type_char_uuid = "19B10002-E8F2-537E-4F6C-D104768A1214"
+        battery_service_uuid = self.config['battery_service_uuid']
+        audio_service_uuid = self.config['main_service_uuid']
+        codec_type_char_uuid = self.config['codec_type_char_uuid']
 
         # Add Battery Service
         await self.server.add_new_service(battery_service_uuid)
@@ -24,11 +26,11 @@ class BLEHandler:
         battery_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         battery_char_permissions = GATTAttributePermissions.readable
         await self.server.add_new_characteristic(
-            battery_service_uuid, "00002A19-0000-1000-8000-00805F9B34FB", battery_char_flags, None, battery_char_permissions
+            battery_service_uuid, self.config['battery_char_uuid'], battery_char_flags, None, battery_char_permissions
         )
         # Ajoutez le descripteur CCC pour les notifications
         await self.server.add_new_descriptor(
-            "00002A19-0000-1000-8000-00805F9B34FB", "00002902-0000-1000-8000-00805F9B34FB", GATTAttributePermissions.readable | GATTAttributePermissions.writeable
+            self.config['battery_char_uuid'], "00002902-0000-1000-8000-00805F9B34FB", GATTAttributePermissions.readable | GATTAttributePermissions.writeable
         )
 
         # Add Audio Service
@@ -60,7 +62,7 @@ class BLEHandler:
         logger.debug("Waiting for connections...")
 
     def read_request(self, characteristic: BlessGATTCharacteristic, **kwargs):
-        if characteristic.uuid == "00002A19-0000-1000-8000-00805F9B34FB":
+        if characteristic.uuid == self.config['battery_char_uuid']:
             value = bytearray([100])  # Niveau de batterie à 100%
             logger.debug(f"Reading {characteristic.uuid}: {value}")
             return value

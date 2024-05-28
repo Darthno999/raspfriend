@@ -2,21 +2,23 @@ import asyncio
 import logging
 from ble_handler import BLEHandler
 from mic_handler import MicHandler
-# from config_handler import ConfigHandler
-# from codec_type import CodecType
-# from status_manager import StatusManager
-# from storage_handler import StorageHandler
+from config_handler import ConfigHandler
+from codec_type import CodecType
+from status_manager import StatusManager
+from storage_handler import StorageHandler
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 async def main():
     loop = asyncio.get_event_loop()
+    config_handler = ConfigHandler()
+    status_manager = StatusManager()
+    storage_handler = StorageHandler()
+    codec_type = CodecType()
+
     ble_handler = BLEHandler(loop)
     mic_handler = MicHandler(ble_handler)
-    # config_handler = ConfigHandler()
-    # status_manager = StatusManager()
-    # storage_handler = StorageHandler()
 
     await ble_handler.start_server()
     logger.debug("BLE server started")
