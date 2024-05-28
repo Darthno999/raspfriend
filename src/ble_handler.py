@@ -4,7 +4,7 @@ from bless import BlessServer, BlessGATTCharacteristic, GATTCharacteristicProper
 from config_handler import ConfigHandler
 from status_manager import StatusManager
 from storage_handler import StorageHandler
-from codec_type import CodecType  # Remplacez 'codec_module' par le nom correct du module
+from codec_type import CodecType
 
 logger = logging.getLogger(__name__)
 
