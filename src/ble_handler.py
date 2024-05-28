@@ -85,4 +85,3 @@ class BLEHandler:
         await self.server.update_value(uuid.UUID(uuid_str).bytes, data)
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
         logger.debug(f"Audio data packet sent: {data}")
-
