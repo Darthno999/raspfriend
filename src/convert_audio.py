@@ -19,10 +19,7 @@ class AudioConverter:
         self.packet_number = 0
         self.index = 0
 
-    def convert_and_send(self):
-
-        asyncio.run(asyncio.sleep(20))
-        
+    async def convert_and_send(self):
         logger.debug(f"Opening WAV file: {self.file_path}")
         with wave.open(self.file_path, 'rb') as wav_file:
             sample_rate = wav_file.getframerate()
@@ -46,10 +43,7 @@ class AudioConverter:
                 self.index = (self.index + 1) % 256
 
                 logger.debug(f"Sending packet number: {self.packet_number}, index: {self.index}")
-                asyncio.run_coroutine_threadsafe(
-                    self.ble_handler.update_audio_value(bytes(packet)),
-                    self.ble_handler.loop
-                )
+                await self.ble_handler.update_audio_value(bytes(packet))
             logger.debug("Finished sending audio data")
 
 async def main():
@@ -67,7 +61,7 @@ async def main():
     await asyncio.sleep(20)
 
     audio_converter = AudioConverter(ble_handler, 'test.wav')
-    audio_converter.convert_and_send()
+    await audio_converter.convert_and_send()
 
     # Boucle d'attente pour maintenir le serveur actif
     try:
