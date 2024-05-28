@@ -42,6 +42,7 @@ class BLEHandler:
             audio_service_uuid, codec_type_char_uuid, codec_type_char_flags, None, codec_type_char_permissions
         )
 
+        # Set up request handlers
         self.server.read_request_func = self.read_request
         self.server.write_request_func = self.write_request
         self.server.notification_state_change_func = self.notification_state_change
@@ -52,6 +53,11 @@ class BLEHandler:
         logger.debug("BLE Server started and advertising")
 
     def read_request(self, characteristic: BlessGATTCharacteristic, **kwargs):
+        if characteristic.uuid == "00002A19-0000-1000-8000-00805F9B34FB":
+            # Retourne un niveau de batterie de 100%
+            value = bytearray([100])
+            logger.debug(f"Reading {characteristic.uuid}: {value}")
+            return value
         logger.debug(f"Reading {characteristic.uuid}: {characteristic.value}")
         return characteristic.value
 
