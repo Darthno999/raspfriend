@@ -43,7 +43,7 @@ class MicHandler:
 
     async def start_streaming(self):
         logger.debug("Audio streaming started")
-        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=320, latency='low'):
+        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=1024, latency='low'):
             while True:
                 await asyncio.sleep(2)
                 logger.debug("Streaming audio data...")
