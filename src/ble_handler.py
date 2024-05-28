@@ -2,6 +2,9 @@ import asyncio
 import logging
 from bless import BlessServer, BlessGATTCharacteristic, GATTCharacteristicProperties, GATTAttributePermissions
 from config_handler import ConfigHandler
+from status_manager import StatusManager
+from storage_handler import StorageHandler
+from codec_type import CodecType  # Remplacez 'codec_module' par le nom correct du module
 
 logger = logging.getLogger(__name__)
 
@@ -9,6 +12,8 @@ class BLEHandler:
     def __init__(self, loop):
         self.loop = loop
         self.config = ConfigHandler().get_config()
+        self.status_manager = StatusManager()
+        self.storage_handler = StorageHandler()
         self.server = BlessServer(name=self.config['device_name'], loop=loop)
         self.audio_data_char_uuid = self.config['audio_data_char_uuid']
         self.server.advertising_interval = 100  # Intervalle de publicité en ms
@@ -25,13 +30,13 @@ class BLEHandler:
         # Add Battery Level Characteristic
         battery_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         battery_char_permissions = GATTAttributePermissions.readable
-        await self.server.add_new_characteristic(
-            battery_service_uuid, self.config['battery_char_uuid'], battery_char_flags, None, battery_char_permissions
+        battery_char = BlessGATTCharacteristic(
+            uuid=self.config['battery_char_uuid'],
+            properties=battery_char_flags,
+            permissions=battery_char_permissions,
+            value=bytearray([100])  # Initial value
         )
-        # Ajoutez le descripteur CCC pour les notifications
-        await self.server.add_new_descriptor(
-            self.config['battery_char_uuid'], "00002902-0000-1000-8000-00805F9B34FB", GATTAttributePermissions.readable | GATTAttributePermissions.writeable
-        )
+        await self.server.add_new_characteristic(battery_service_uuid, battery_char)
 
         # Add Audio Service
         await self.server.add_new_service(audio_service_uuid)
@@ -39,16 +44,24 @@ class BLEHandler:
         # Add Audio Data Characteristic
         audio_data_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         audio_data_char_permissions = GATTAttributePermissions.readable
-        await self.server.add_new_characteristic(
-            audio_service_uuid, self.audio_data_char_uuid, audio_data_char_flags, None, audio_data_char_permissions
+        audio_data_char = BlessGATTCharacteristic(
+            uuid=self.audio_data_char_uuid,
+            properties=audio_data_char_flags,
+            permissions=audio_data_char_permissions,
+            value=bytearray()  # Initial value
         )
+        await self.server.add_new_characteristic(audio_service_uuid, audio_data_char)
 
         # Add Codec Type Characteristic
         codec_type_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.write
         codec_type_char_permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
-        await self.server.add_new_characteristic(
-            audio_service_uuid, codec_type_char_uuid, codec_type_char_flags, None, codec_type_char_permissions
+        codec_type_char = BlessGATTCharacteristic(
+            uuid=codec_type_char_uuid,
+            properties=codec_type_char_flags,
+            permissions=codec_type_char_permissions,
+            value=bytearray([CodecType.PCM_8BIT_16KHZ_MONO])  # Initial value
         )
+        await self.server.add_new_characteristic(audio_service_uuid, codec_type_char)
 
         # Set up request handlers
         self.server.read_request_func = self.read_request
