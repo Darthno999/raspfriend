@@ -26,22 +26,18 @@ class BLEHandler:
 
         # Add Battery Service
         await self.server.add_new_service(battery_service_uuid)
-
-        # Add Battery Level Characteristic
         battery_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         battery_char_permissions = GATTAttributePermissions.readable
-        battery_char_value = bytearray([100])  # Initial value
+        battery_char_value = bytearray([100])
         await self.server.add_new_characteristic(
             battery_service_uuid, self.config['battery_char_uuid'], battery_char_flags, battery_char_value, battery_char_permissions
         )
 
         # Add Audio Service
         await self.server.add_new_service(audio_service_uuid)
-
-        # Add Audio Data Characteristic
         audio_data_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         audio_data_char_permissions = GATTAttributePermissions.readable
-        audio_data_char_value = bytearray()  # Initial value
+        audio_data_char_value = bytearray()
         await self.server.add_new_characteristic(
             audio_service_uuid, self.audio_data_char_uuid, audio_data_char_flags, audio_data_char_value, audio_data_char_permissions
         )
@@ -49,7 +45,7 @@ class BLEHandler:
         # Add Codec Type Characteristic
         codec_type_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.write
         codec_type_char_permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
-        codec_type_char_value = bytearray([CodecType.PCM_8BIT_16KHZ_MONO])  # Initial value
+        codec_type_char_value = bytearray([CodecType.PCM_8BIT_16KHZ_MONO])
         await self.server.add_new_characteristic(
             audio_service_uuid, codec_type_char_uuid, codec_type_char_flags, codec_type_char_value, codec_type_char_permissions
         )
@@ -85,5 +81,6 @@ class BLEHandler:
 
     async def update_audio_value(self, data):
         await self.server.update_value(self.audio_data_char_uuid, data)
+        logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
