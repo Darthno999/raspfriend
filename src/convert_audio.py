@@ -20,15 +20,10 @@ class AudioConverter:
         self.index = 0
 
     def convert_and_send(self):
-        logger.debug("Waiting for 20 seconds before sending audio...")
-        asyncio.run_coroutine_threadsafe(
-            self.ble_handler.update_audio_value(bytes("Waiting for 20 seconds before sending audio...")),
-            self.ble_handler.loop
-        ).result()  # Attendez que la coroutine se termine
-        
-        asyncio.run(asyncio.sleep(20))
 
-        logger.debug(f"Ouverture du fichier WAV : {self.file_path}")
+        asyncio.run(asyncio.sleep(20))
+        
+        logger.debug(f"Opening WAV file: {self.file_path}")
         with wave.open(self.file_path, 'rb') as wav_file:
             sample_rate = wav_file.getframerate()
             channels = wav_file.getnchannels()
@@ -67,6 +62,9 @@ async def main():
     ble_handler = BLEHandler(loop)
     await ble_handler.start_server()
     logger.debug("BLE server started")
+
+    logger.debug("Waiting for 20 seconds before sending audio...")
+    await asyncio.sleep(20)
 
     audio_converter = AudioConverter(ble_handler, 'test.wav')
     audio_converter.convert_and_send()
