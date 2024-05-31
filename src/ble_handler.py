@@ -11,14 +11,14 @@ class BLEHandler:
         self.loop = loop
         self.config = ConfigHandler().get_config()
         self.server = BlessServer(name=self.config['device_name'], loop=loop)
-        self.audio_data_char_uuid = uuid.UUID(self.config['audio_data_char_uuid'])
-        self.battery_char_uuid = uuid.UUID(self.config['battery_char_uuid'])
+        self.audio_data_char_uuid = uuid.UUID.hex(self.config['audio_data_char_uuid'])
+        self.battery_char_uuid = uuid.UUID.hex(self.config['battery_char_uuid'])
         self.server.advertising_interval = 100  # Advertising interval in ms
         self.server.advertising_timeout = 0  # 0 means indefinite advertising
 
     async def setup_ble_services(self):
-        audio_service_uuid = uuid.UUID(self.config['main_service_uuid']).hex
-        battery_service_uuid = uuid.UUID(self.config['battery_service_uuid']).hex
+        audio_service_uuid = uuid.UUID.hex(self.config['main_service_uuid']).hex
+        battery_service_uuid = uuid.UUID.hex(self.config['battery_service_uuid']).hex
 
         # Add Audio Service
         audio_service = await self.server.add_new_service(audio_service_uuid)
