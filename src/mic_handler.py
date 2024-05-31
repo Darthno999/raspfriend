@@ -10,7 +10,7 @@ class MicHandler:
     def __init__(self, ble_handler):
         self.ble_handler = ble_handler
         self.sample_rate = 16000  # Fréquence d'échantillonnage correcte
-        self.channels = 2  # Utilisez 2 canaux pour l'enregistrement
+        self.channels = 1  # Utilisez 1 canal pour l'enregistrement mono
         self.packet_number = 0
         self.index = 0
 
@@ -18,8 +18,8 @@ class MicHandler:
         if status:
             logger.warning(f"Audio input status: {status}")
         
-        # Convertir en mono en prenant la moyenne des deux canaux
-        mono_data = np.mean(indata, axis=1).astype(np.int16)
+        # Convertir en mono en prenant le premier canal
+        mono_data = indata[:, 0].astype(np.int16)
         
         # Convertir les données en format 16-bit PCM
         audio_data = struct.pack('<' + 'h' * len(mono_data), *mono_data)
@@ -44,5 +44,4 @@ class MicHandler:
 
     def close(self):
         pass
-        
         
