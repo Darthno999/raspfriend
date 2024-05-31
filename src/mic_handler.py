@@ -10,7 +10,7 @@ class MicHandler:
     def __init__(self, ble_handler):
         self.ble_handler = ble_handler
         self.sample_rate = 16000
-        self.channels = 1
+        self.channels = 2  # Record in stereo
         self.packet_number = 0
         self.index = 0
 
@@ -18,8 +18,10 @@ class MicHandler:
         if status:
             logger.warning(f"Audio input status: {status}")
 
-        # Convert the data to mono and 16-bit PCM format
-        mono_data = indata[:, 0].astype(np.int16)
+        # Convert the stereo data to mono
+        mono_data = np.mean(indata, axis=1).astype(np.int16)
+
+        # Convert the data to 16-bit PCM format
         audio_data = struct.pack('<' + 'h' * len(mono_data), *mono_data)
 
         while len(audio_data) >= 320:
