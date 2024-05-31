@@ -13,40 +13,42 @@ class BLEHandler:
         self.server = BlessServer(name=self.config['device_name'], loop=loop)
         self.audio_data_char_uuid = self.config['audio_data_char_uuid']
         self.battery_char_uuid = self.config['battery_char_uuid']
-        self.server.advertising_interval = 100  # Intervalle de publicité en ms
-        self.server.advertising_timeout = 0  # 0 signifie publicité indéfinie
+        self.server.advertising_interval = 100  # Advertising interval in ms
+        self.server.advertising_timeout = 0  # 0 means indefinite advertising
 
     async def setup_ble_services(self):
         audio_service_uuid = str(uuid.UUID(self.config['main_service_uuid']))
         battery_service_uuid = str(uuid.UUID(self.config['battery_service_uuid']))
 
         # Add Audio Service
-        await self.server.add_new_service(audio_service_uuid)
+        audio_service = await self.server.add_new_service(audio_service_uuid)
         audio_data_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         audio_data_char_permissions = GATTAttributePermissions.readable
         audio_data_char_value = bytearray()
-        await self.server.add_new_characteristic(
-            audio_service_uuid, str(uuid.UUID(self.audio_data_char_uuid)), audio_data_char_flags, audio_data_char_value, audio_data_char_permissions
+        audio_data_char = await self.server.add_new_characteristic(
+            audio_service, str(uuid.UUID(self.audio_data_char_uuid)), audio_data_char_flags, audio_data_char_value, audio_data_char_permissions
         )
 
         # Add Battery Service
-        await self.server.add_new_service(battery_service_uuid)
+        battery_service = await self.server.add_new_service(battery_service_uuid)
         battery_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
         battery_char_permissions = GATTAttributePermissions.readable
         battery_char_value = bytearray([100])
-        await self.server.add_new_characteristic(
-            battery_service_uuid, str(uuid.UUID(self.battery_char_uuid)), battery_char_flags, battery_char_value, battery_char_permissions
+        battery_char = await self.server.add_new_characteristic(
+            battery_service, str(uuid.UUID(self.battery_char_uuid)), battery_char_flags, battery_char_value, battery_char_permissions
         )
 
+        return audio_service, audio_data_char, battery_service, battery_char
+
     async def start_server(self):
-        await self.setup_ble_services()
+        audio_service, audio_data_char, battery_service, battery_char = await self.setup_ble_services()
         await self.server.start()
         logger.debug("BLE Server started and advertising")
         logger.debug("Waiting for connections...")
 
     def read_request(self, characteristic: BlessGATTCharacteristic, **kwargs):
         if characteristic.uuid == str(uuid.UUID(self.battery_char_uuid)):
-            value = bytearray([100])  # Niveau de batterie à 100%
+            value = bytearray([100])  # Battery level at 100%
             logger.debug(f"Reading {characteristic.uuid}: {value}")
             return value
         logger.debug(f"Reading {characteristic.uuid}: {characteristic.value}")
@@ -63,7 +65,7 @@ class BLEHandler:
             asyncio.create_task(self.update_audio_value(bytearray("Initial audio data", 'utf-8')))
 
     async def update_audio_value(self, data):
-        uuid_str = str(uuid.UUID(self.audio_data_char_uuid))  # Convertir l'UUID en chaîne de caractères
+        uuid_str = str(uuid.UUID(self.audio_data_char_uuid))
         await self.server.update_value(uuid_str, data)
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
         logger.debug(f"Audio data packet sent: {data}")
