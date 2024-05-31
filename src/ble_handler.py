@@ -26,7 +26,7 @@ class BLEHandler:
         audio_data_char_permissions = GATTAttributePermissions.readable
         audio_data_char_value = bytearray()
         audio_data_char = await self.server.add_new_characteristic(
-            audio_service, str(uuid.UUID(self.audio_data_char_uuid)), audio_data_char_flags, audio_data_char_value, audio_data_char_permissions
+            audio_service, self.audio_data_char_uuid, audio_data_char_flags, audio_data_char_value, audio_data_char_permissions
         )
 
         # Add Battery Service
@@ -68,6 +68,7 @@ class BLEHandler:
         uuid_str = str(uuid.UUID(self.audio_data_char_uuid))
         await self.server.update_value(uuid_str, data)
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
+        logger.debug(f"Audio data packet sent: {data}")
         logger.debug(f"Audio data packet sent: {data}")
         logger.debug(f"Audio data packet sent: {data}")
         logger.debug(f"Audio data packet sent: {data}")
