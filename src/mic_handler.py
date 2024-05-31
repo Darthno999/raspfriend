@@ -1,4 +1,4 @@
-import pyaudio
+import sounddevice as sd
 import struct
 import asyncio
 import logging
@@ -13,16 +13,13 @@ class MicHandler:
         self.channels = 1
         self.packet_number = 0
         self.index = 0
-        self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(format=pyaudio.paInt16,
-                                 channels=self.channels,
-                                 rate=self.sample_rate,
-                                 input=True,
-                                 frames_per_buffer=512)
 
-    def audio_callback(self, in_data, frame_count, time_info, status):
+    def audio_callback(self, indata, frames, time, status):
+        if status:
+            logger.warning(f"Audio input status: {status}")
+
         # Convert the data to mono and 16-bit PCM format
-        mono_data = np.frombuffer(in_data, dtype=np.int16)
+        mono_data = indata[:, 0].astype(np.int16)
         audio_data = struct.pack('<' + 'h' * len(mono_data), *mono_data)
 
         while len(audio_data) >= 320:
@@ -36,16 +33,13 @@ class MicHandler:
                 self.ble_handler.loop
             )
 
-        return (in_data, pyaudio.paContinue)
-
     async def start_streaming(self):
         logger.debug("Audio streaming started")
-        self.stream.start_stream()
-        while True:
-            await asyncio.sleep(2)
-            logger.debug("Streaming audio data...")
+        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=512, latency='low'):
+            while True:
+                await asyncio.sleep(2)
+                logger.debug("Streaming audio data...")
 
     def close(self):
-        self.stream.stop_stream()
-        self.stream.close()
-        self.p.terminate()
+        pass
+
