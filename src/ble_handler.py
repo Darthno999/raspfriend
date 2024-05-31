@@ -9,7 +9,6 @@ from codec_type import CodecType
 
 logger = logging.getLogger(__name__)
 
-
 class BLEHandler:
     def __init__(self, loop):
         self.loop = loop
