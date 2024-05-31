@@ -6,6 +6,7 @@ from config_handler import ConfigHandler
 from codec_type import CodecType
 from status_manager import StatusManager
 from storage_handler import StorageHandler
+import sounddevice as sd
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -18,7 +19,12 @@ async def main():
     codec_type = CodecType()
 
     ble_handler = BLEHandler(loop)
-    mic_handler = MicHandler(ble_handler, device="hw:0,0")  # Spécifiez le périphérique audio ici
+
+    # Lister les périphériques audio disponibles
+    print(sd.query_devices())
+
+    # Spécifiez le périphérique audio ici après avoir vérifié les périphériques disponibles
+    mic_handler = MicHandler(ble_handler, device="hw:0,0")  # Utilisez "hw:0,0" basé sur la sortie de arecord -l
 
     await ble_handler.start_server()
     logger.debug("BLE server started")
