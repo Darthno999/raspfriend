@@ -21,18 +21,9 @@ class BLEHandler:
         self.server.advertising_timeout = 0  # 0 signifie publicité indéfinie
 
     async def setup_ble_services(self):
-        battery_service_uuid = str(uuid.UUID(self.config['battery_service_uuid']))
         audio_service_uuid = str(uuid.UUID(self.config['main_service_uuid']))
         codec_type_char_uuid = str(uuid.UUID(self.config['codec_type_char_uuid']))
-
-        # Add Battery Service
-        await self.server.add_new_service(battery_service_uuid)
-        battery_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
-        battery_char_permissions = GATTAttributePermissions.readable
-        battery_char_value = bytearray([100])
-        await self.server.add_new_characteristic(
-            battery_service_uuid, str(uuid.UUID(self.config['battery_char_uuid'])), battery_char_flags, battery_char_value, battery_char_permissions
-        )
+        battery_service_uuid = str(uuid.UUID(self.config['battery_service_uuid']))
 
         # Add Audio Service
         await self.server.add_new_service(audio_service_uuid)
@@ -49,6 +40,15 @@ class BLEHandler:
         codec_type_char_value = bytearray([CodecType.PCM_8BIT_16KHZ_MONO])
         await self.server.add_new_characteristic(
             audio_service_uuid, codec_type_char_uuid, codec_type_char_flags, codec_type_char_value, codec_type_char_permissions
+        )
+
+        # Add Battery Service
+        await self.server.add_new_service(battery_service_uuid)
+        battery_char_flags = GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify
+        battery_char_permissions = GATTAttributePermissions.readable
+        battery_char_value = bytearray([100])
+        await self.server.add_new_characteristic(
+            battery_service_uuid, str(uuid.UUID(self.config['battery_char_uuid'])), battery_char_flags, battery_char_value, battery_char_permissions
         )
 
         # Set up request handlers
@@ -84,4 +84,5 @@ class BLEHandler:
         uuid_str = str(uuid.UUID(self.audio_data_char_uuid))  # Convertir l'UUID en chaîne de caractères
         await self.server.update_value(uuid_str, data)
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
+        logger.debug(f"Audio data packet sent: {data}")
         logger.debug(f"Audio data packet sent: {data}")
