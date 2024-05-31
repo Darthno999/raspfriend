@@ -7,12 +7,13 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 class MicHandler:
-    def __init__(self, ble_handler):
+    def __init__(self, ble_handler, device=None):
         self.ble_handler = ble_handler
         self.sample_rate = 16000
         self.channels = 2  # Record in stereo
         self.packet_number = 0
         self.index = 0
+        self.device = device  # Added this line
 
     def audio_callback(self, indata, frames, time, status):
         if status:
@@ -37,11 +38,8 @@ class MicHandler:
 
     async def start_streaming(self):
         logger.debug("Audio streaming started")
-        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=512, latency='low'):
+        with sd.InputStream(samplerate=self.sample_rate, channels=self.channels, callback=self.audio_callback, blocksize=512, latency='low', device=self.device):  # Added device=self.device
             while True:
                 await asyncio.sleep(2)
                 logger.debug("Streaming audio data...")
-
-    def close(self):
-        pass
 

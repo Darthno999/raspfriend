@@ -18,7 +18,7 @@ async def main():
     codec_type = CodecType()
 
     ble_handler = BLEHandler(loop)
-    mic_handler = MicHandler(ble_handler)
+    mic_handler = MicHandler(ble_handler, device="hw:0,0")  # Spécifiez le périphérique audio ici
 
     await ble_handler.start_server()
     logger.debug("BLE server started")
