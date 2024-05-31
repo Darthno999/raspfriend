@@ -24,7 +24,7 @@ async def main():
     print(sd.query_devices())
 
     # Spécifiez le périphérique audio ici après avoir vérifié les périphériques disponibles
-    mic_handler = MicHandler(ble_handler, device="hw:0,0")  # Utilisez "hw:0,0" basé sur la sortie de arecord -l
+    mic_handler = MicHandler(ble_handler, device=0)  # Utilisez l'index 0 basé sur la sortie de sd.query_devices()
 
     await ble_handler.start_server()
     logger.debug("BLE server started")
