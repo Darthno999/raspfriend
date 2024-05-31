@@ -17,8 +17,8 @@ class BLEHandler:
         self.server.advertising_timeout = 0  # 0 means indefinite advertising
 
     async def setup_ble_services(self):
-        audio_service_uuid = str(uuid.UUID(self.config['main_service_uuid']))
-        battery_service_uuid = str(uuid.UUID(self.config['battery_service_uuid']))
+        audio_service_uuid = str(self.config['main_service_uuid'])
+        battery_service_uuid = str(self.config['battery_service_uuid'])
 
         # Add Audio Service
         audio_service = await self.server.add_new_service(audio_service_uuid)
@@ -68,5 +68,6 @@ class BLEHandler:
         uuid_str = str(uuid.UUID(self.audio_data_char_uuid))
         await self.server.update_value(uuid_str, data)
         logger.debug(f"Audio data sent: {data[:10]}...")  # Log first 10 bytes for brevity
+        logger.debug(f"Audio data packet sent: {data}")
         logger.debug(f"Audio data packet sent: {data}")
         logger.debug(f"Audio data packet sent: {data}")
